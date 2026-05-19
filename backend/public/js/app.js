@@ -28,7 +28,7 @@ import { safeLoadFids } from "./fids.js";
 import { loadSonometers } from "./sonometers.js";
 import { checkApiStatus } from "./status.js";
 import { loadLogs } from "./logs.js";
-import { startLiveLogs } from "./LogsLive.js";
+import { startLiveLogs } from "./logsLive.js";
 
 // ======================================================
 // INIT GLOBAL
