@@ -195,6 +195,25 @@ function angleDiff(a, b) {
     return d > 180 ? 360 - d : d;
 }
 
+// Extraction vent METAR
+const windMatch = metar.match(/ (\d{3})(\d{2})KT/);
+let windDir = null;
+let windSpeed = null;
+
+if (windMatch) {
+    windDir = parseInt(windMatch[1], 10);
+    windSpeed = parseInt(windMatch[2], 10);
+}
+
+// Heading piste
+const heading = activeRunway === "04" ? 40 : 220;
+
+// Calcul composantes
+const { headwind, crosswind } = computeWindComponents(windDir, windSpeed, heading);
+
+// Mise à jour UI
+updateWindComponentUI(headwind, crosswind);
+
 // -----------------------------
 // UI RWY
 // -----------------------------
@@ -210,4 +229,19 @@ function updateRunwayUI(rwy) {
 
     if (box) box.textContent = `RWY ${rwy}`;
     if (panel) panel.textContent = `Piste active : RWY ${rwy}`;
+}
+function updateWindComponentUI(headwind, crosswind) {
+    const el = document.getElementById("runway-wind");
+    if (!el) return;
+
+    let hwColor = "#00ff88";   // headwind OK
+    let cwColor = "#00c8ff";   // crosswind normal
+
+    if (headwind < 0) hwColor = "#ffaa00"; // tailwind
+    if (Math.abs(crosswind) >= 15) cwColor = "#ff4444"; // crosswind fort
+
+    el.innerHTML = `
+        <div><b>Headwind :</b> <span style="color:${hwColor}">${headwind} kt</span></div>
+        <div><b>Crosswind :</b> <span style="color:${cwColor}">${crosswind} kt</span></div>
+    `;
 }
