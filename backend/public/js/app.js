@@ -30,6 +30,7 @@ import { loadSonometers } from "./sonometers.js";
 import { checkApiStatus } from "./status.js";
 import { loadLogs } from "./logs.js";
 import { startLiveLogs } from "./logsLive.js";
+import { initDebugPanel } from "./map.js";
 
 // ======================================================
 // INIT GLOBAL
@@ -37,6 +38,7 @@ import { startLiveLogs } from "./logsLive.js";
 document.addEventListener("DOMContentLoaded", () => {
     // Carte
     initMap();
+    initDebugPanel();
 
     // METAR / TAF
     initMetar();
