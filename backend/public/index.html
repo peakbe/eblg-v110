@@ -1,150 +1,116 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>EBLG Dashboard PRO+</title>
+    <meta charset="UTF-8" />
+    <title>EBLG Dashboard — Cockpit IFR</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-    <!-- MarkerCluster CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css?v=84">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
 </head>
-
 <body>
-
-    <!-- ======================================================
-         SIDEBAR
-    ====================================================== -->
+    <!-- SIDEBAR -->
     <div id="sidebar">
-
-        <div id="sidebar-tabs">
-            <button data-tab="metar">METAR</button>
-            <button data-tab="taf">TAF</button>
-            <button data-tab="fids">FIDS</button>
-            <button data-tab="sono">Sonomètres</button>
-            <button data-panel-target="panel-logs">LOGS</button>
+        <div class="runway-wind-box">
+            <div id="runway-wind">Vent : inconnu</div>
+            <div id="runway-active">Piste active : inconnue</div>
         </div>
 
-        <div id="runway-wind" class="runway-wind-box"></div>
+        <div id="sidebar-tabs">
+            <button data-panel-target="panel-metar">METAR</button>
+            <button data-panel-target="panel-taf">TAF</button>
+            <button data-panel-target="panel-fids">FIDS</button>
+            <button data-panel-target="panel-sono">Sonomètres</button>
+            <button data-panel-target="panel-logs">Logs</button>
+        </div>
 
         <div id="sidebar-panels">
-
-            <div class="panel" id="panel-metar">
-                <pre id="metar"></pre>
-                <div id="runway-active"></div>
+            <!-- METAR -->
+            <div id="panel-metar" class="panel">
+                <h3>METAR</h3>
+                <pre id="metar-x"></pre>
                 <div id="metar-age"></div>
             </div>
 
-            <div class="panel hidden" id="panel-taf">
+            <!-- TAF -->
+            <div id="panel-taf" class="panel hidden">
+                <h3>TAF</h3>
                 <pre id="taf"></pre>
             </div>
 
-            <div class="panel hidden" id="panel-fids">
+            <!-- FIDS -->
+            <div id="panel-fids" class="panel hidden">
+                <h3>FIDS</h3>
                 <div id="fids-arrivals"></div>
                 <div id="fids-departures"></div>
             </div>
 
-            <div class="panel hidden" id="panel-sono">
-                <div id="sono-controls">
-                    <button id="btn-noiseheat-toggle" class="float-btn">Heatmap ON</button>
-                    <button id="btn-noisezones-toggle" class="float-btn">Zones bruit</button>
-
+            <!-- SONOMÈTRES -->
+            <div id="panel-sono" class="panel hidden">
+                <h3>Sonomètres</h3>
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <select id="sono-filter-town"></select>
                     <select id="sono-sort">
                         <option value="distance">Tri: Distance</option>
                         <option value="id">Tri: ID</option>
                         <option value="address">Tri: Adresse</option>
                     </select>
-
-                    <select id="sono-filter-town">
-                        <option value="all">Commune: Toutes</option>
-                    </select>
                 </div>
-
                 <div id="sono-list"></div>
             </div>
 
+            <!-- LOGS -->
+            <div id="panel-logs" class="panel hidden">
+                <h3>Logs backend</h3>
+                <div id="logs-box" class="logs-live-box"></div>
+                <h3 style="margin-top:10px;">Live</h3>
+                <div id="logs-live" class="logs-live-box"></div>
+            </div>
         </div>
 
+        <!-- STATUS BAR -->
+        <div style="padding:8px; border-top:1px solid #1c2228; font-size:12px;">
+            <span data-status="METAR">METAR</span> ·
+            <span data-status="TAF">TAF</span> ·
+            <span data-status="FIDS">FIDS</span> ·
+            <span data-status="SONO">SONO</span> ·
+            <span data-status="ADSB">ADSB</span> ·
+            <span data-status="LOGS">LOGS</span>
+        </div>
     </div>
 
-    <div id="rwy-indicator" class="rwy-box">RWY --</div>
-
-    <div class="panel hidden" id="panel-logs">
-        <h3>Logs Live</h3>
-        <div id="logs-live" class="logs-live-box"></div>
-    </div>
-
-    <!-- ======================================================
-         DETAIL PANEL
-    ====================================================== -->
-    <div id="detail-panel" class="detail-panel hidden">
-        <h2 id="detail-title">—</h2>
-        <p><b>Adresse :</b> <span id="detail-address">—</span></p>
-        <p><b>Commune :</b> <span id="detail-town">—</span></p>
-        <p><b>Statut :</b> <span id="detail-status">—</span></p>
-        <p><b>Distance piste :</b> <span id="detail-distance">—</span></p>
-    </div>
-
-    <!-- ======================================================
-         MAP
-    ====================================================== -->
+    <!-- MAP -->
     <div id="map"></div>
 
-    <!-- ======================================================
-         DEBUG PANEL
-    ====================================================== -->
-    <div id="debug-panel" class="debug-panel">
-        <div>FPS : <span id="fps">0</span></div>
-        <div>CPU : <span id="cpu">0</span> ms</div>
-        <div>Render : <span id="render">0</span> ms</div>
-    </div>
-
-    <!-- ======================================================
-         FLOATING BUTTONS
-    ====================================================== -->
+    <!-- FLOATING BUTTONS -->
     <div class="floating-buttons">
-        <button id="btn-reset-zoom" class="float-btn">Reset Zoom</button>
-        <button id="btn-reset-map" class="float-btn reset-pro">⟳ Reset Map</button>
+        <button id="btn-reset-map" class="float-btn">Reset carte</button>
+        <button id="btn-noisezones-toggle" class="float-btn">Zones bruit</button>
+        <label class="float-btn">
+            <input type="checkbox" id="btn-heatmap" style="margin-right:4px;" />
+            Heatmap bruit
+        </label>
     </div>
 
-    <!-- ======================================================
-         JAVASCRIPT (optimisé)
-    ====================================================== -->
+    <!-- DEBUG PANEL -->
+    <div class="debug-panel">
+        FPS: <span id="fps">--</span> ·
+        CPU: <span id="cpu">--</span> ms ·
+        Render: <span id="render">--</span> ms
+    </div>
 
-    <!-- Leaflet core -->
-    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SCRIPTS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+    <script
+        src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js">
+    </script>
 
-    <!-- MarkerCluster -->
-    <script defer src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
-    <!-- Heatmap plugin -->
-    <script defer src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-
-    <!-- PolylineDecorator plugin -->
-    <script defer src="https://unpkg.com/leaflet-polylinedecorator"></script>
-
-    <!-- MODULES JS (ordre correct + cache-buster) -->
-    <script type="module" src="/js/helpers.js?v=84"></script>
-    <script type="module" src="/js/config.js?v=84"></script>
-    <script type="module" src="/js/runways.js?v=84"></script>
-    <script type="module" src="/js/map.js?v=84"></script>
-    <script type="module" src="/js/metar.js?v=84"></script>
-    <script type="module" src="/js/taf.js?v=84"></script>
-    <script type="module" src="/js/fids.js?v=84"></script>
-    <script type="module" src="/js/sonometers.js?v=84"></script>
-    <script type="module" src="/js/status.js?v=84"></script>
-    <script type="module" src="/js/logs.js?v=84"></script>
-    <script type="module" src="/js/logsLive.js?v=84"></script>
-
-    <!-- App (doit être chargé en dernier) -->
     <script type="module" src="/js/app.js?v=84"></script>
-
 </body>
 </html>
