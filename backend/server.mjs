@@ -13,6 +13,10 @@ import {
     getCachedTaf,
     setCachedTaf
 } from "./metarCache.mjs";
+import {
+    getCachedAdsb,
+    setCachedAdsb
+} from "./adsbCache.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
