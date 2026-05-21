@@ -1,25 +1,46 @@
+// ======================================================
+// LOGS.JS — Cockpit IFR EBLG PRO+++
+// - Chargement sécurisé des logs backend
+// - Anti-HTML, anti-erreur silencieuse
+// - Intégration panneau "LOGS"
+// ======================================================
+
 import { ENDPOINTS } from "./config.js";
+import { fetchJSON, updateStatusPanel } from "./helpers.js";
 
 export async function loadLogs() {
-    const panel = document.getElementById("logs-panel");
-    if (!panel) return;
-
     try {
-        const t0 = performance.now();
-        const res = await fetch(ENDPOINTS.fids);
+        const data = await fetchJSON(ENDPOINTS.logs || "/logs");
 
-        const ok = res.ok ? "OK" : "ERR";
-        const dt = Math.round(performance.now() - t0);
+        if (!data || !Array.isArray(data.entries)) {
+            console.warn("[LOGS] Données invalides", data);
+            updateStatusPanel("LOGS", { error: true });
+            return;
+        }
 
-        const div = document.createElement("div");
-        div.className = "log-entry " + (ok === "OK" ? "log-ok" : "log-error");
-        div.textContent = `${new Date().toLocaleTimeString()} FIDS → ${ok} (${dt} ms)`;
-        panel.appendChild(div);
+        renderLogs(data.entries);
+        updateStatusPanel("LOGS", { ok: true });
 
     } catch (err) {
-        const div = document.createElement("div");
-        div.className = "log-entry log-error";
-        div.textContent = `${new Date().toLocaleTimeString()} FIDS → ERR`;
-        panel.appendChild(div);
+        console.error("[LOGS] Erreur loadLogs", err);
+        updateStatusPanel("LOGS", { error: true });
     }
+}
+
+function renderLogs(list) {
+    const box = document.getElementById("logs-box");
+    if (!box) return;
+
+    box.innerHTML = list
+        .map(l => `<div class="log-line">${escapeHtml(l)}</div>`)
+        .join("");
+}
+
+function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, c => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;"
+    }[c]));
 }
