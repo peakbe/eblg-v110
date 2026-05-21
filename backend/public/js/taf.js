@@ -1,14 +1,12 @@
 // ======================================================
-// TAF — PRO+++
-// Chargement sécurisé + UI propre
+// TAF.JS — Cockpit IFR EBLG PRO+++
+// - Chargement sécurisé TAF
+// - Parsing minimal (raw + âge)
+// - Mise à jour UI
 // ======================================================
 
 import { ENDPOINTS } from "./config.js";
 import { fetchJSON, updateStatusPanel } from "./helpers.js";
-
-const IS_DEV = location.hostname.includes("localhost");
-const log = (...a) => IS_DEV && console.log("[TAF]", ...a);
-const logErr = (...a) => console.error("[TAF ERROR]", ...a);
 
 // ------------------------------------------------------
 // INIT
@@ -18,35 +16,38 @@ export function initTaf() {
 }
 
 // ------------------------------------------------------
-// SAFE LOAD
+// CHARGEMENT SÉCURISÉ
 // ------------------------------------------------------
 export async function safeLoadTaf() {
     try {
         const data = await fetchJSON(ENDPOINTS.taf);
 
-        if (!data || !data.data || !data.data[0]) {
+        if (!data || !data.raw) {
+            console.error("[TAF] Données invalides", data);
             updateStatusPanel("TAF", { error: true });
-            updateTafUI("TAF indisponible");
             return;
         }
 
-        const raw = data.data[0].raw_text;
-        updateTafUI(raw);
-
+        renderTaf(data);
         updateStatusPanel("TAF", { ok: true });
-        log("TAF chargé");
 
     } catch (err) {
-        logErr("Erreur TAF", err);
+        console.error("[TAF] Erreur safeLoadTaf", err);
         updateStatusPanel("TAF", { error: true });
-        updateTafUI("TAF indisponible");
     }
 }
 
 // ------------------------------------------------------
-// UI
+// RENDU TAF
 // ------------------------------------------------------
-export function updateTafUI(raw) {
-    const el = document.getElementById("taf");
-    if (el) el.textContent = raw || "TAF indisponible";
+function renderTaf(data) {
+    const tafEl = document.getElementById("taf");
+    if (!tafEl) return;
+
+    const raw = data.raw || "TAF indisponible";
+    const age = data.ageMinutes ?? null;
+
+    tafEl.textContent =
+        raw +
+        (age != null ? `\n\nÂge TAF : ${age.toFixed(1)} min` : "");
 }
